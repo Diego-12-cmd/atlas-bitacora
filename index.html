@@ -540,14 +540,21 @@ function renderListaFull(){
 function renderListaEditar(){
   const el=document.getElementById("f-lista-editar");
   if(!registrosActuales.length){el.innerHTML="<div class=\"empty-state\"><div class=\"icon\">📋</div><p>No hay registros.</p></div>";return;}
-  el.innerHTML=registrosActuales.map(r=>
-    "<div class=\"registro-card-edit\" id=\"recard-"+sanitize(r._key)+"\">"+
-      "<div class=\"registro-card-header\">"+
-        "<span class=\"badge-tipo "+getBadgeClass(sanitizeTipo(r.tipo))+"\">"+sanitize(r.tipo)+"</span>"+
-        (r.turno?"<span class=\"registro-turno\">Turno "+sanitize(sanitizeTurno(r.turno))+"</span>":"")+
-        "<span class=\"registro-fecha\">"+sanitize(r.fecha)+"</span>"+
-        "<button class=\"btn-editar-reg\" data-key=\""+sanitize(r._key)+"\" onclick=\"toggleEditForm(this.dataset.key)\">Editar</button>"+
-        "<button class=\"btn-eliminar-reg\" data-key=\""+sanitize(r._key)+"\" data-tipo=\""+sanitizeTipo(r.tipo)+"\" data-fecha=\""+sanitize(r.fecha)+"\" onclick=\"pedirEliminarReg(this.dataset.key,this.dataset.tipo,this.dataset.fecha)\">Eliminar</button>"+
+  el.innerHTML=registrosActuales.map(function(r){
+    var tipo=sanitizeTipo(r.tipo);
+    var tv=sanitizeTurno(r.turno)||"Sin turno";
+    var tn=tv==="Sin turno"?"\u2014":tv;
+    var fe=sanitize(r.fecha);
+    var k=sanitize(r._key);
+    var lbl='font-size:9px;font-weight:700;color:var(--ac-gray);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px';
+    var fb='background:#E6F5FA;color:#006F8F;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;border:1px solid #B5D4F4;white-space:nowrap';
+    var sep='border-right:1.5px solid var(--border)';
+    return "<div class=\"registro-card-edit\" id=\"recard-"+k+"\">"+
+      "<div style=\"display:flex;border-bottom:1.5px solid var(--border)\">"+
+        "<div style=\"flex:1.3;padding:8px 11px;"+sep+"\"><div style=\""+lbl+"\">Tipo registro</div><span class=\"badge-tipo "+getBadgeClass(tipo)+"\">"+sanitize(tipo)+"</span></div>"+
+        "<div style=\"flex:1;padding:8px 11px;"+sep+"\"><div style=\""+lbl+"\">Turno</div><span class=\"registro-turno\" style=\"margin:0\">"+tn+"</span></div>"+
+        "<div style=\"flex:1;padding:8px 11px;"+sep+"\"><div style=\""+lbl+"\">Fecha</div><span style=\""+fb+"\">"+fe+"</span></div>"+
+        "<div style=\"padding:8px 10px;display:flex;flex-direction:column;justify-content:center;gap:5px\"><button class=\"btn-editar-reg\" data-key=\""+k+"\" onclick=\"toggleEditForm(this.dataset.key)\">Editar</button><button class=\"btn-eliminar-reg\" data-key=\""+k+"\" data-tipo=\""+sanitizeTipo(r.tipo)+"\" data-fecha=\""+fe+"\" onclick=\"pedirEliminarReg(this.dataset.key,this.dataset.tipo,this.dataset.fecha)\">Eliminar</button></div>"+
       "</div>"+
       (r.comentario?"<div class=\"registro-comentario-wrap\"><span class=\"registro-comentario-label\">Comentario: </span><span class=\"registro-comentario-texto\">"+sanitize(r.comentario)+"</span></div>":"<div class=\"registro-sin-comentario\">Sin comentario.</div>")+
       "<div class=\"reg-edit-form\" id=\"redit-"+sanitize(r._key)+"\">"+
@@ -754,16 +761,24 @@ function confirmarEliminarReg(){
 function renderLista(id,registros){
   const el=document.getElementById(id);if(!el)return;
   if(!registros.length){el.innerHTML="<div class=\"empty-state\"><div class=\"icon\">📋</div><p>No hay registros aún.</p></div>";return;}
-  el.innerHTML=registros.map(r=>
-    "<div class=\"registro-card\"><div class=\"registro-card-header\">"+
-    "<span class=\"badge-tipo "+getBadgeClass(sanitizeTipo(r.tipo))+"\">"+sanitize(r.tipo)+"</span>"+
-    (r.turno?"<span class=\"registro-turno\">Turno "+sanitize(sanitizeTurno(r.turno))+"</span>":"")+
-    "<span class=\"registro-fecha\">"+sanitize(r.fecha)+"</span></div>"+
-    (r.comentario
-      ?"<div class=\"registro-comentario-wrap\"><span class=\"registro-comentario-label\">Comentario: </span><span class=\"registro-comentario-texto\">"+sanitize(r.comentario)+"</span></div>"
-      :"<div class=\"registro-sin-comentario\">Sin comentario.</div>")+
-    "</div>"
-  ).join("");
+  el.innerHTML=registros.map(function(r){
+    var tipo=sanitizeTipo(r.tipo);
+    var tv=sanitizeTurno(r.turno)||"Sin turno";
+    var tn=tv==="Sin turno"?"\u2014":tv;
+    var fe=sanitize(r.fecha);
+    var lbl='font-size:9px;font-weight:700;color:var(--ac-gray);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px';
+    var fb='background:#E6F5FA;color:#006F8F;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;border:1px solid #B5D4F4;white-space:nowrap';
+    var div='display:flex;border-bottom:1.5px solid var(--border)';
+    var sep='border-right:1.5px solid var(--border)';
+    return "<div class=\"registro-card\">"+
+      "<div style=\""+div+"\">"+
+        "<div style=\"flex:1.3;padding:8px 11px;"+sep+"\"><div style=\""+lbl+"\">Tipo registro</div><span class=\"badge-tipo "+getBadgeClass(tipo)+"\">"+sanitize(tipo)+"</span></div>"+
+        "<div style=\"flex:1;padding:8px 11px;"+sep+"\"><div style=\""+lbl+"\">Turno</div><span class=\"registro-turno\" style=\"margin:0\">"+tn+"</span></div>"+
+        "<div style=\"padding:8px 11px\"><div style=\""+lbl+"\">Fecha</div><span style=\""+fb+"\">"+fe+"</span></div>"+
+      "</div>"+
+      (r.comentario?"<div class=\"registro-comentario-wrap\"><span class=\"registro-comentario-label\">Comentario: </span><span class=\"registro-comentario-texto\">"+sanitize(r.comentario)+"</span></div>":"<div class=\"registro-sin-comentario\">Sin comentario.</div>")+
+    "</div>";
+  }).join("");
 }
 
 function sortTs(r){
