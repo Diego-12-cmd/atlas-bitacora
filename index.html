@@ -834,9 +834,8 @@ function setModo(modo) {
     const wrap = document.getElementById("area-filter-wrap");
     wrap.style.display = "flex";
     wrap.innerHTML = areas.map(a=>
-      "<button class=\"area-btn"+(a===areaSeleccionada?" active":"")+"" onclick=\"seleccionarArea('"+a+"')">"+a+"</button>"
-    ).join("");
-    renderQRPrintLista(EQUIPOS.filter(e=>(e.area||"Sin área")===areaSeleccionada));
+      `<button class="area-btn${a===areaSeleccionada?" active":""}" onclick="seleccionarArea('${a}')">${a}</button>`
+    ).join("");    renderQRPrintLista(EQUIPOS.filter(e=>(e.area||"Sin área")===areaSeleccionada));
   } else {
     document.getElementById("area-filter-wrap").style.display="none";
     renderQRPrintLista(EQUIPOS);
