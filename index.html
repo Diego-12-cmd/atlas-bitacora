@@ -906,14 +906,16 @@ function imprimirSeleccion() {
     const celdas = grupo.map(eq => {
       const url = baseUrl + "#equipo=" + eq.id;
       const tagOarea = eq.tag ? "TAG: "+eq.tag : eq.area;
-      return `<div style="border:1px solid #ccc;padding:8px;text-align:center;display:inline-flex;flex-direction:column;align-items:center;gap:5px;break-inside:avoid;">
-        <div style="margin-top:6px"><img src="${logoSrc}" style="height:20px;border-radius:2px;background:#0092BC;padding:2px 5px"/></div>
-        <div>
-          <div style="font-size:10pt;font-weight:700;color:#1C2B2E;line-height:1.2">${eq.equipo} ${eq.modelo}</div>
-          <div style="font-size:8pt;font-weight:700;color:#1C2B2E;margin-top:2px">${tagOarea}</div>
+      return `<div style="border:1px solid #ccc;padding:12px;text-align:center;display:inline-flex;flex-direction:column;align-items:center;gap:8px;break-inside:avoid;">
+        <div style="display:flex;align-items:center;gap:12px;width:100%">
+          <img src="${logoSrc}" style="height:44px;border-radius:4px;background:#0092BC;padding:4px 8px;flex-shrink:0"/>
+          <div style="text-align:left">
+            <div style="font-size:14pt;font-weight:800;color:#1C2B2E;line-height:1.2">${eq.equipo} ${eq.modelo}</div>
+            <div style="font-size:11pt;font-weight:700;color:#1C2B2E;margin-top:3px">${tagOarea}</div>
+          </div>
         </div>
-        <div style="border-top:1px solid #C8D8DC;border-bottom:1px solid #C8D8DC;padding:3px 0;width:100%">
-          <div style="font-size:6pt;font-weight:700;color:#0092BC;text-transform:uppercase;letter-spacing:0.5px;line-height:1.4">Escanea el QR para revisar<br>la bitácora de este equipo</div>
+        <div style="border-top:1px solid #C8D8DC;border-bottom:1px solid #C8D8DC;padding:5px 0;width:100%">
+          <div style="font-size:10pt;font-weight:700;color:#0092BC;text-transform:uppercase;letter-spacing:0.5px;line-height:1.5">Escanea el QR para revisar<br>la bitácora de este equipo</div>
         </div>
         <div style="margin-bottom:6px" id="qrp-${pi}-${eq.id.replace(/[^a-zA-Z0-9]/g,'_')}"></div>
       </div>`;
