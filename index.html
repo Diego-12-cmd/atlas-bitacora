@@ -468,7 +468,7 @@
     <h3 style="color:var(--danger)">Quitar equipo</h3>
     <div class="form-equipo-name">Selecciona el equipo que quieres quitar del dashboard.</div>
     <div class="reg-edit-group" style="margin-bottom:12px"><label>Buscar</label><input type="text" id="quitar-buscar" placeholder="Tipo, modelo, área, TAG o serie..." oninput="filtrarQuitar()"/></div>
-    <div class="reg-edit-group" style="margin-bottom:16px"><label>Equipo</label><select id="quitar-select" size="6"></select></div>
+    <div class="reg-edit-group" style="margin-bottom:16px"><label>Equipo</label><div id="quitar-lista" style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-top:4px"></div><input type="hidden" id="quitar-select"/></div>
     <button class="btn-verificar" style="background:var(--danger)" onclick="pedirConfirmacionQuitar()">Continuar</button>
     <button class="btn-cancelar" onclick="cerrarQuitarEquipo()">Cancelar</button>
   </div>
@@ -866,24 +866,38 @@ function normBusqueda(t){
   return String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 }
 function filtrarQuitar(){
-  const sel=document.getElementById("quitar-select");
+  const lista=document.getElementById("quitar-lista");
   const tokens=normBusqueda(document.getElementById("quitar-buscar").value).split(/\s+/).filter(Boolean);
-  const lista=EQUIPOS.filter(e=>{
+  const resultados=EQUIPOS.filter(e=>{
     const texto=normBusqueda([e.equipo,e.modelo,e.area,e.tag,e.serie,e.estado].join(" "));
     return tokens.every(t=>texto.includes(t));
   });
-  if(!lista.length){
-    sel.innerHTML='<option value="" disabled selected>Sin resultados</option>';
+  if(!resultados.length){
+    document.getElementById("quitar-select").value="";
+    lista.innerHTML='<div style="font-size:13px;color:var(--text-muted);padding:10px 2px">Sin resultados</div>';
     return;
   }
   const grupos={};
-  lista.forEach(e=>{ (grupos[e.equipo]=grupos[e.equipo]||[]).push(e); });
-  sel.innerHTML=Object.keys(grupos).map(tipo=>
-    '<optgroup label="'+sanitize(tipo)+'">'+
-    grupos[tipo].map(e=>'<option value="'+sanitize(e.id)+'">'+sanitize(e.modelo)+(e.tag?" · TAG "+sanitize(e.tag):"")+(e.area?" · "+sanitize(e.area):"")+'</option>').join("")+
-    '</optgroup>'
+  resultados.forEach(e=>{ (grupos[e.equipo]=grupos[e.equipo]||[]).push(e); });
+  lista.innerHTML=Object.keys(grupos).map(tipo=>
+    '<div style="border:0.5px solid var(--border-strong);border-radius:10px;background:var(--surface-2);overflow:hidden">'+
+      '<div style="font-size:11px;font-weight:500;color:var(--text-secondary);padding:8px 12px;background:var(--surface-1);border-bottom:0.5px solid var(--border);text-transform:uppercase;letter-spacing:0.06em">'+sanitize(tipo)+'</div>'+
+      grupos[tipo].map((e,i)=>
+        '<button type="button" class="quitar-item" data-id="'+sanitize(e.id)+'" onclick="seleccionarQuitar(this.dataset.id)" style="display:block;width:100%;text-align:left;padding:10px 12px;border:none;border-top:'+(i?'0.5px solid var(--border)':'none')+';background:transparent;cursor:pointer;font-family:inherit">'+
+          '<div style="font-size:14px;font-weight:500">'+sanitize(e.modelo)+'</div>'+
+          '<div style="font-size:12px;color:var(--text-secondary);margin-top:2px">'+(e.tag?'TAG '+sanitize(e.tag):'Sin TAG')+(e.area?' · '+sanitize(e.area):'')+'</div>'+
+        '</button>'
+      ).join("")+
+    '</div>'
   ).join("");
-  sel.selectedIndex=0;
+  seleccionarQuitar(resultados[0].id);
+}
+function seleccionarQuitar(id){
+  document.getElementById("quitar-select").value=id;
+  document.querySelectorAll(".quitar-item").forEach(b=>{
+    const activo=b.dataset.id===id;
+    b.style.background=activo?"var(--bg-accent-muted)":"transparent";
+  });
 }
 function abrirQuitarEquipo(){
   document.getElementById("quitar-buscar").value="";
