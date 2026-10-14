@@ -653,8 +653,7 @@ function filtrar(){
 }
 
 // ---- EQUIPO DESDE DASHBOARD ----
-function abrirEquipoFull(id) {
-  equipoActual=EQUIPOS.find(e=>e.id===id);if(!equipoActual)return;
+function pintarEncabezadoFull(){
   document.getElementById("eq-f-nombre").textContent="";
   document.getElementById("eq-f-tag").textContent="";
   document.getElementById("eq-f-modelo").innerHTML=sanitize(equipoActual.equipo+" "+equipoActual.modelo)+
@@ -662,6 +661,11 @@ function abrirEquipoFull(id) {
   document.getElementById("eq-f-serie").textContent=equipoActual.serie?"N° Serie: "+equipoActual.serie:"";
   document.getElementById("eq-f-area").textContent=equipoActual.area;
   document.getElementById("eq-f-estado").textContent=equipoActual.estado;
+}
+
+function abrirEquipoFull(id) {
+  equipoActual=EQUIPOS.find(e=>e.id===id);if(!equipoActual)return;
+  pintarEncabezadoFull();
   cambiarTab(0);
   mostrarVista("view-equipo-full");
   escucharBitacoraFull();
@@ -796,8 +800,7 @@ function guardarEdicionReg(key) {
 }
 
 // ---- VISTA QR ----
-function abrirEquipoQR(id) {
-  equipoActual=EQUIPOS.find(e=>e.id===id);if(!equipoActual)return;
+function pintarEncabezadoQR(){
   document.getElementById("eq-q-nombre").textContent="";
   document.getElementById("eq-q-tag").textContent="";
   document.getElementById("eq-q-modelo").innerHTML=sanitize(equipoActual.equipo+" "+equipoActual.modelo)+
@@ -807,6 +810,11 @@ function abrirEquipoQR(id) {
   const est=document.getElementById("eq-q-estado");
   est.textContent=equipoActual.estado;
   est.style.cssText="font-size:15px;font-weight:800;padding:6px 16px;border:none;color:#fff;background:"+(equipoActual.estado==="Operativo"?"#1A7F5A":"#C0392B");
+}
+
+function abrirEquipoQR(id) {
+  equipoActual=EQUIPOS.find(e=>e.id===id);if(!equipoActual)return;
+  pintarEncabezadoQR();
   mostrarVista("view-equipo-qr");
   escucharBitacoraQR();
 }
@@ -881,6 +889,14 @@ function aplicarConfigEquipos(cfg){
   EQUIPOS.length=0;
   EQUIPOS.push(...lista);
   if(document.getElementById("view-dashboard").classList.contains("active")) renderDashboard(EQUIPOS);
+  if(equipoActual){
+    const fresh=EQUIPOS.find(e=>e.id===equipoActual.id);
+    if(fresh){
+      equipoActual=fresh;
+      if(document.getElementById("view-equipo-qr").classList.contains("active")) pintarEncabezadoQR();
+      if(document.getElementById("view-equipo-full").classList.contains("active")) pintarEncabezadoFull();
+    }
+  }
 }
 function escribirConfig(path,valor){
   return import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js")
