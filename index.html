@@ -362,7 +362,7 @@
     <div class="form-sheet-handle"></div>
     <h3 style="color:#E67E22">⚠️ Aviso</h3>
     <div class="form-equipo-name" style="font-size:13px;color:var(--text);margin-bottom:20px;line-height:1.5">
-      Cualquier cambio realizado en este dashboard <strong>no se verá reflejado en la app Atlas Monitor</strong>.
+      Cualquier cambio realizado en este dashboard es <strong>responsabilidad del técnico que lo realiza</strong>.
     </div>
     <button class="btn-verificar" id="btn-entendido" onclick="confirmarEdicion()">Entendido, continuar</button>
     <button class="btn-cancelar" onclick="cancelarAviso()">Cancelar</button>
@@ -467,7 +467,8 @@
     <div class="form-sheet-handle"></div>
     <h3 style="color:var(--danger)">Quitar equipo</h3>
     <div class="form-equipo-name">Selecciona el equipo que quieres quitar del dashboard.</div>
-    <div class="reg-edit-group" style="margin-bottom:16px"><label>Equipo</label><select id="quitar-select"></select></div>
+    <div class="reg-edit-group" style="margin-bottom:12px"><label>Buscar</label><input type="text" id="quitar-buscar" placeholder="Tipo, modelo, área, TAG o serie..." oninput="filtrarQuitar()"/></div>
+    <div class="reg-edit-group" style="margin-bottom:16px"><label>Equipo</label><select id="quitar-select" size="6"></select></div>
     <button class="btn-verificar" style="background:var(--danger)" onclick="pedirConfirmacionQuitar()">Continuar</button>
     <button class="btn-cancelar" onclick="cerrarQuitarEquipo()">Cancelar</button>
   </div>
@@ -861,9 +862,26 @@ function guardarNuevoEquipo(){
     .finally(()=>{ btn.disabled=false; });
 }
 
-function abrirQuitarEquipo(){
+function normBusqueda(t){
+  return String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+}
+function filtrarQuitar(){
   const sel=document.getElementById("quitar-select");
-  sel.innerHTML=EQUIPOS.map(e=>'<option value="'+sanitize(e.id)+'">'+sanitize(e.modelo)+(e.tag?" — "+sanitize(e.tag):"")+'</option>').join("");
+  const tokens=normBusqueda(document.getElementById("quitar-buscar").value).split(/\s+/).filter(Boolean);
+  const lista=EQUIPOS.filter(e=>{
+    const texto=normBusqueda([e.equipo,e.modelo,e.area,e.tag,e.serie,e.estado].join(" "));
+    return tokens.every(t=>texto.includes(t));
+  });
+  if(!lista.length){
+    sel.innerHTML='<option value="" disabled selected>Sin resultados</option>';
+    return;
+  }
+  sel.innerHTML=lista.map(e=>'<option value="'+sanitize(e.id)+'">'+sanitize(e.equipo)+" "+sanitize(e.modelo)+" — "+sanitize(e.area)+(e.tag?" — TAG "+sanitize(e.tag):"")+'</option>').join("");
+  sel.selectedIndex=0;
+}
+function abrirQuitarEquipo(){
+  document.getElementById("quitar-buscar").value="";
+  filtrarQuitar();
   document.getElementById("form-quitar-eq").classList.add("active");
 }
 function cerrarQuitarEquipo(){ document.getElementById("form-quitar-eq").classList.remove("active"); }
