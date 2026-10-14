@@ -235,6 +235,7 @@
     <span>ℹ️</span>
     Los registros son realizados por personal técnico Atlas Copco desde la app Atlas Monitor.
   </div>
+  <div style="padding:14px 14px 0"><button class="btn-verificar" onclick="abrirIngresoQR()">➕ Ingresar inspección o mantención</button></div>
   <div class="bitacora-section" style="margin-top:14px">
     <h2 style="font-size:15px;letter-spacing:0">Bitácora del equipo</h2>
     <div id="q-lista-bitacora"><div class="loading-state">Cargando registros...</div></div>
@@ -394,6 +395,37 @@
   </div>
 </div>
 
+<!-- FORM INGRESO INSPECCION / MANTENCION -->
+<div class="form-overlay" id="form-ingreso">
+  <div class="form-sheet">
+    <div class="form-sheet-handle"></div>
+    <h3>Nuevo registro</h3>
+    <div class="form-equipo-name" id="ing-equipo"></div>
+    <div class="reg-edit-row">
+      <div class="reg-edit-group"><label>Fecha</label><input type="date" id="ing-fecha"/></div>
+      <div class="reg-edit-group"><label>Tipo</label><select id="ing-tipo">
+        <option value="Inspección">Inspección</option>
+        <option value="Mantención P1">Mantención P1</option>
+        <option value="Mantención P2">Mantención P2</option>
+        <option value="Mantención P3">Mantención P3</option>
+        <option value="Mantención P4">Mantención P4</option>
+        <option value="Otro">Otro</option>
+      </select></div>
+    </div>
+    <div class="reg-edit-row">
+      <div class="reg-edit-group"><label>Turno</label><select id="ing-turno">
+        <option value="Sin turno">Sin turno</option>
+        <option value="1-3">Turno 1-3</option>
+        <option value="2-4">Turno 2-4</option>
+        <option value="4-3">Turno 4-3</option>
+      </select></div>
+    </div>
+    <div class="reg-edit-group" style="margin-bottom:16px"><label>Comentario</label><textarea id="ing-comentario" rows="4" placeholder="Describe lo realizado..."></textarea></div>
+    <button class="btn-verificar" id="btn-guardar-ingreso" onclick="guardarIngresoQR()">Guardar registro</button>
+    <button class="btn-cancelar" onclick="cerrarFormIngreso()">Cancelar</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -416,6 +448,7 @@ const ICONOS = {"Compresor":"⚙","SOPLADOR":"💨","Secador de Aire":"🌬","Va
 let equipoActual = null, registrosActuales = [], unsubscribe = null;
 let regAEliminar = null, regKeyAEliminar = null;
 let vieneDeQR = false;
+let _accesoModo = null;
 
 function getBadgeClass(tipo) {
   if (!tipo) return "badge-Otro";
@@ -662,6 +695,46 @@ function escucharBitacoraQR(){
   });
 }
 
+
+// ---- INGRESO DE REGISTROS DESDE QR ----
+function abrirIngresoQR(){
+  if(!equipoActual) return;
+  _accesoModo = "ingreso";
+  document.getElementById("acceso-clave").value="";
+  document.getElementById("acceso-clave-error").style.display="none";
+  document.getElementById("form-acceso").classList.add("active");
+  setTimeout(()=>document.getElementById("acceso-clave").focus(),200);
+}
+function abrirFormIngreso(){
+  const hoy=new Date();
+  document.getElementById("ing-equipo").textContent=equipoActual.equipo+" "+equipoActual.modelo+(equipoActual.tag?" — TAG "+equipoActual.tag:"");
+  document.getElementById("ing-fecha").value=new Date(hoy.getTime()-hoy.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  document.getElementById("ing-tipo").value="Inspección";
+  document.getElementById("ing-turno").value="Sin turno";
+  document.getElementById("ing-comentario").value="";
+  document.getElementById("form-ingreso").classList.add("active");
+}
+function cerrarFormIngreso(){
+  document.getElementById("form-ingreso").classList.remove("active");
+}
+function guardarIngresoQR(){
+  const fecha=document.getElementById("ing-fecha").value;
+  const tipo=document.getElementById("ing-tipo").value;
+  const turno=document.getElementById("ing-turno").value||"Sin turno";
+  const comentario=document.getElementById("ing-comentario").value.trim();
+  if(!fecha||!tipo){ mostrarToast("Completa fecha y tipo.","#C0392B"); return; }
+  const [yyyy,mm,dd]=fecha.split("-");
+  const fechaFmt=dd+"-"+mm+"-"+yyyy;
+  const btn=document.getElementById("btn-guardar-ingreso");
+  btn.disabled=true;
+  const fbId=equipoActual.fbId;
+  import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js")
+    .then(({ref,push})=>push(ref(window._fbDb,"bitacora/"+fbId),{fecha:fechaFmt,tipo,turno,comentario,ts:Date.now()}))
+    .then(()=>{ cerrarFormIngreso(); mostrarToast("Registro guardado.","#1A7F5A"); })
+    .catch(()=>mostrarToast("Error al guardar.","#C0392B"))
+    .finally(()=>{ btn.disabled=false; });
+}
+
 // ---- QR TAB ----
 function renderQRTab(){
   if(!equipoActual)return;
@@ -686,14 +759,14 @@ function cerrarQR(){document.getElementById("modal-qr").classList.remove("active
 
 // ---- ACCESO PERSONAL ----
 function abrirAccesoDashboard(){
-  vieneDeQR=false;
+  vieneDeQR=false; _accesoModo=null;
   document.getElementById("acceso-clave").value="";
   document.getElementById("acceso-clave-error").style.display="none";
   document.getElementById("form-acceso").classList.add("active");
   setTimeout(()=>document.getElementById("acceso-clave").focus(),200);
 }
 function abrirAccesoPersonal(){
-  vieneDeQR=true;
+  vieneDeQR=true; _accesoModo=null;
   document.getElementById("acceso-clave").value="";
   document.getElementById("acceso-clave-error").style.display="none";
   document.getElementById("form-acceso").classList.add("active");
@@ -715,6 +788,12 @@ async function verificarAcceso(){
   const hash = await verificarClaveHash(input);
   if(hash === CLAVE_HASH){
     _intentosFallidos = 0;
+    if(_accesoModo === "ingreso"){
+      _accesoModo = null;
+      cerrarAcceso();
+      abrirFormIngreso();
+      return;
+    }
     cerrarAcceso();
     document.getElementById("btn-acceso-dashboard").style.display="none";
     document.getElementById("btn-qr-print").style.display="block";
