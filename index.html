@@ -242,6 +242,20 @@
   </div>
 </div>
 
+<!-- INICIO -->
+<div id="view-inicio" class="view">
+  <div class="dashboard-hero" style="text-align:center;padding-top:44px;padding-bottom:40px">
+    <div style="display:inline-block;background:#fff;border-radius:8px;padding:6px 12px"><img id="inicio-logo" alt="Atlas Copco" style="height:58px;display:block"/></div>
+    <h1 style="margin-top:18px">Bitácora de Equipos</h1>
+    <p>Atlas Copco — Spence Mining Site</p>
+  </div>
+  <div style="padding:28px 20px 12px;display:flex;flex-direction:column;gap:12px;max-width:420px;margin:0 auto">
+    <button class="btn-verificar" onclick="verEquiposDesdeInicio()">Ver equipos</button>
+    <button class="btn-outline" style="width:100%;padding:12px;font-size:15px" onclick="abrirAccesoDashboard()">🔒 Acceso personal</button>
+  </div>
+  <div class="dashboard-footer">Atlas Copco Chile — Spence Mining Site</div>
+</div>
+
 <!-- DASHBOARD -->
 <div id="view-dashboard" class="view active">
   <div class="header">
@@ -1007,7 +1021,7 @@ async function verificarAcceso(){
     document.getElementById("btn-acceso-dashboard").style.display="none";
     document.getElementById("btn-qr-print").style.display="block";
     document.getElementById("admin-bar").style.display="flex";
-    document.getElementById("btn-volver-qr").style.display=vieneDeQR?"block":"none";
+    document.getElementById("btn-volver-qr").style.display="block";
     renderDashboard(EQUIPOS);
     mostrarVista("view-dashboard");
   } else {
@@ -1027,8 +1041,13 @@ async function verificarAcceso(){
 document.getElementById("acceso-clave").addEventListener("keydown",e=>{if(e.key==="Enter")verificarAcceso();});
 
 function volverQR(){
-  if(equipoActual) mostrarVista("view-equipo-qr");
-  else mostrarVista("view-equipo-qr");
+  if(vieneDeQR && equipoActual) mostrarVista("view-equipo-qr");
+  else mostrarVista("view-inicio");
+}
+function verEquiposDesdeInicio(){
+  document.getElementById("btn-volver-qr").style.display="block";
+  renderDashboard(EQUIPOS);
+  mostrarVista("view-dashboard");
 }
 
 // ---- ELIMINAR REGISTRO ----
@@ -1240,8 +1259,7 @@ function leerHash(){
     const eq=EQUIPOS.find(e=>e.id===hash.replace("equipo=",""));
     if(eq) abrirEquipoQR(eq.id);
   } else {
-    renderDashboard(EQUIPOS);
-    mostrarVista("view-dashboard");
+    mostrarVista("view-inicio");
   }
 }
 window.addEventListener("hashchange",leerHash);
@@ -1250,7 +1268,8 @@ escucharConfigEquipos();
 if(window._fbReady){ leerHash(); }
 else { document.addEventListener("firebase-ready",()=>{ leerHash(); }); }
 // Fallback si Firebase tarda
-setTimeout(()=>{ if(!document.querySelector(".view.active")) { renderDashboard(EQUIPOS); mostrarVista("view-dashboard"); } }, 2000);
+setTimeout(()=>{ if(!document.querySelector(".view.active")) { mostrarVista("view-inicio"); } }, 2000);
+document.getElementById("inicio-logo").src=document.querySelector("#view-dashboard .header-logo img").src;
 </script>
 </body>
 </html>
