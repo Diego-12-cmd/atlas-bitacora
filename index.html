@@ -103,6 +103,10 @@
   .equipo-hero-nombre{font-size:20px;font-weight:800;}
   .equipo-hero-meta{font-size:12px;opacity:0.85;margin-top:5px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
   .equipo-hero-badge{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:#fff;font-weight:700;font-size:11px;padding:2px 8px;border-radius:20px;}
+  #view-equipo-full .equipo-hero-label{font-size:12px;}
+  #view-equipo-full .equipo-hero-nombre{font-size:28px;}
+  #view-equipo-full .equipo-hero-meta{font-size:15px;margin-top:8px;}
+  #view-equipo-full .equipo-hero-badge{font-size:13px;padding:4px 12px;}
 
   /* BITACORA */
   .bitacora-section{padding:13px;}
@@ -617,9 +621,10 @@ function filtrar(){
 // ---- EQUIPO DESDE DASHBOARD ----
 function abrirEquipoFull(id) {
   equipoActual=EQUIPOS.find(e=>e.id===id);if(!equipoActual)return;
-  document.getElementById("eq-f-nombre").textContent=equipoActual.modelo;
-  document.getElementById("eq-f-tag").textContent=equipoActual.tag?"TAG: "+equipoActual.tag:equipoActual.area;
-  document.getElementById("eq-f-modelo").textContent=equipoActual.equipo+" "+equipoActual.modelo;
+  document.getElementById("eq-f-nombre").textContent="";
+  document.getElementById("eq-f-tag").textContent="";
+  document.getElementById("eq-f-modelo").innerHTML=sanitize(equipoActual.equipo+" "+equipoActual.modelo)+
+    (equipoActual.tag?' <span style="font-weight:800">TAG: '+sanitize(equipoActual.tag)+'</span>':"");
   document.getElementById("eq-f-serie").textContent=equipoActual.serie?"N° Serie: "+equipoActual.serie:"";
   document.getElementById("eq-f-area").textContent=equipoActual.area;
   document.getElementById("eq-f-estado").textContent=equipoActual.estado;
