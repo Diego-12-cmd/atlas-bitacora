@@ -876,7 +876,13 @@ function filtrarQuitar(){
     sel.innerHTML='<option value="" disabled selected>Sin resultados</option>';
     return;
   }
-  sel.innerHTML=lista.map(e=>'<option value="'+sanitize(e.id)+'">'+sanitize(e.equipo)+" "+sanitize(e.modelo)+" — "+sanitize(e.area)+(e.tag?" — TAG "+sanitize(e.tag):"")+'</option>').join("");
+  const grupos={};
+  lista.forEach(e=>{ (grupos[e.equipo]=grupos[e.equipo]||[]).push(e); });
+  sel.innerHTML=Object.keys(grupos).map(tipo=>
+    '<optgroup label="'+sanitize(tipo)+'">'+
+    grupos[tipo].map(e=>'<option value="'+sanitize(e.id)+'">'+sanitize(e.modelo)+(e.tag?" · TAG "+sanitize(e.tag):"")+(e.area?" · "+sanitize(e.area):"")+'</option>').join("")+
+    '</optgroup>'
+  ).join("");
   sel.selectedIndex=0;
 }
 function abrirQuitarEquipo(){
