@@ -478,6 +478,37 @@
   </div>
 </div>
 
+<!-- FORM EDITAR EQUIPO -->
+<div class="form-overlay" id="form-editar-eq" style="align-items:center">
+  <div class="form-sheet" style="border-radius:18px">
+    <div class="form-sheet-handle"></div>
+    <h3>Editar equipo</h3>
+    <div class="form-equipo-name">Los cambios se muestran en el dashboard.</div>
+    <div class="reg-edit-row">
+      <div class="reg-edit-group"><label>Tipo</label><select id="ed-tipo">
+        <option value="Compresor">Compresor</option>
+        <option value="SOPLADOR">Soplador</option>
+        <option value="Secador de Aire">Secador de Aire</option>
+        <option value="Valvula Despiche">Válvula Despiche</option>
+      </select></div>
+      <div class="reg-edit-group"><label>Modelo</label><input type="text" id="ed-modelo"/></div>
+    </div>
+    <div class="reg-edit-row">
+      <div class="reg-edit-group"><label>N° serie</label><input type="text" id="ed-serie"/></div>
+      <div class="reg-edit-group"><label>TAG</label><input type="text" id="ed-tag"/></div>
+    </div>
+    <div class="reg-edit-row">
+      <div class="reg-edit-group"><label>Área</label><input type="text" id="ed-area"/></div>
+      <div class="reg-edit-group"><label>Estado</label><select id="ed-estado">
+        <option value="Operativo">Operativo</option>
+        <option value="Fuera de servicio">Fuera de servicio</option>
+      </select></div>
+    </div>
+    <button class="btn-verificar" id="btn-guardar-editar" onclick="guardarEdicionEquipo()">Guardar cambios</button>
+    <button class="btn-cancelar" onclick="cerrarEditarEquipo()">Cancelar</button>
+  </div>
+</div>
+
 <!-- FORM QUITAR EQUIPO -->
 <div class="form-overlay" id="form-quitar-eq" style="align-items:center">
   <div class="form-sheet" style="border-radius:18px">
@@ -537,6 +568,8 @@ let equipoActual = null, registrosActuales = [], unsubscribe = null;
 let regAEliminar = null, regKeyAEliminar = null;
 let vieneDeQR = false;
 let _accesoModo = null;
+let _modoAdmin = false;
+let _editandoId = null;
 
 function getBadgeClass(tipo) {
   if (!tipo) return "badge-Otro";
@@ -589,6 +622,7 @@ function renderDashboard(lista) {
           "<span class=\"equipo-area-badge\">"+(eq.equipo||"Equipo")+"</span>"+
           "<span class=\"estado-badge "+(fuera?"estado-fs":"estado-op")+"\">"+(fuera?"Fuera serv.":"Operativo")+"</span>"+
           "<button class=\"btn-qr-sm\" data-id=\""+eq.id+"\" onclick=\"event.stopPropagation();abrirQRModal(this.dataset.id)\">QR</button>"+
+          (_modoAdmin?"<button class=\"btn-editar-reg\" data-id=\""+eq.id+"\" onclick=\"event.stopPropagation();abrirEditarEquipo(this.dataset.id)\">Editar</button>":"")+
         "</div></div>";
     });
     html+="</div>";
@@ -841,7 +875,9 @@ function aplicarConfigEquipos(cfg){
   if(!_equiposBase) _equiposBase=EQUIPOS.slice();
   const ocultos=cfg.ocultos||{};
   const agregados=cfg.agregados||{};
-  const lista=_equiposBase.filter(e=>!ocultos[e.id]).concat(Object.values(agregados));
+  const editados=cfg.editados||{};
+  const lista=_equiposBase.filter(e=>!ocultos[e.id]).concat(Object.values(agregados))
+    .map(e=>editados[e.id]?{...e,...editados[e.id]}:e);
   EQUIPOS.length=0;
   EQUIPOS.push(...lista);
   if(document.getElementById("view-dashboard").classList.contains("active")) renderDashboard(EQUIPOS);
@@ -959,6 +995,45 @@ function quitarEquipoConfirmado(){
     .catch(()=>mostrarToast("Error al quitar.","#C0392B"));
 }
 
+
+// ---- EDITAR EQUIPO (acceso personal) ----
+function abrirEditarEquipo(id){
+  const eq=EQUIPOS.find(e=>e.id===id);
+  if(!eq) return;
+  _editandoId=id;
+  document.getElementById("ed-tipo").value=eq.equipo;
+  document.getElementById("ed-modelo").value=eq.modelo||"";
+  document.getElementById("ed-serie").value=eq.serie||"";
+  document.getElementById("ed-tag").value=eq.tag||"";
+  document.getElementById("ed-area").value=eq.area||"";
+  document.getElementById("ed-estado").value=eq.estado||"Operativo";
+  document.getElementById("form-editar-eq").classList.add("active");
+}
+function cerrarEditarEquipo(){
+  _editandoId=null;
+  document.getElementById("form-editar-eq").classList.remove("active");
+}
+function guardarEdicionEquipo(){
+  const id=_editandoId;
+  if(!id) return;
+  const modelo=document.getElementById("ed-modelo").value.trim();
+  if(!modelo){ mostrarToast("Ingresa el modelo.","#C0392B"); return; }
+  const datos={
+    equipo:document.getElementById("ed-tipo").value,
+    modelo,
+    serie:document.getElementById("ed-serie").value.trim(),
+    tag:document.getElementById("ed-tag").value.trim(),
+    area:document.getElementById("ed-area").value.trim(),
+    estado:document.getElementById("ed-estado").value
+  };
+  const btn=document.getElementById("btn-guardar-editar");
+  btn.disabled=true;
+  escribirConfig("editados/"+id,datos)
+    .then(()=>{ cerrarEditarEquipo(); mostrarToast("Equipo actualizado.","#1A7F5A"); })
+    .catch(()=>mostrarToast("Error al guardar.","#C0392B"))
+    .finally(()=>{ btn.disabled=false; });
+}
+
 // ---- QR TAB ----
 function renderQRTab(){
   if(!equipoActual)return;
@@ -1025,6 +1100,7 @@ async function verificarAcceso(){
     document.getElementById("btn-acceso-dashboard").style.display="none";
     document.getElementById("btn-qr-print").style.display="block";
     document.getElementById("admin-bar").style.display="flex";
+    _modoAdmin=true;
     document.getElementById("btn-volver-qr").style.display="block";
     renderDashboard(EQUIPOS);
     mostrarVista("view-dashboard");
