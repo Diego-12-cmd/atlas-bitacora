@@ -874,19 +874,19 @@ function filtrarQuitar(){
   });
   if(!resultados.length){
     document.getElementById("quitar-select").value="";
-    lista.innerHTML='<div style="font-size:13px;color:var(--text-muted);padding:10px 2px">Sin resultados</div>';
+    lista.innerHTML='<div style="font-size:13px;color:#5B7177;padding:10px 2px">Sin resultados</div>';
     return;
   }
   const grupos={};
   resultados.forEach(e=>{ (grupos[e.equipo]=grupos[e.equipo]||[]).push(e); });
   lista.innerHTML=Object.keys(grupos).map(tipo=>
     '<div>'+
-      '<div style="font-size:12px;font-weight:500;color:var(--text-secondary);padding:0 2px 6px;text-transform:uppercase;letter-spacing:0.06em">'+sanitize(tipo)+'</div>'+
+      '<div style="font-size:12px;font-weight:500;color:#5B7177;padding:0 2px 6px;text-transform:uppercase;letter-spacing:0.06em">'+sanitize(tipo)+'</div>'+
       '<div style="display:flex;flex-direction:column;gap:8px">'+
       grupos[tipo].map(e=>
-        '<button type="button" class="quitar-item" data-id="'+sanitize(e.id)+'" onclick="seleccionarQuitar(this.dataset.id)" style="display:block;width:100%;text-align:left;padding:10px 12px;border:1px solid var(--border-stronger);border-radius:10px;background:var(--surface-1);cursor:pointer;font-family:inherit;color:inherit">'+
+        '<button type="button" class="quitar-item" data-id="'+sanitize(e.id)+'" onclick="seleccionarQuitar(this.dataset.id)" style="display:block;width:100%;text-align:left;padding:10px 12px;border:1px solid #AAB0B5;border-radius:10px;background:#FFFFFF;cursor:pointer;font-family:inherit;color:inherit">'+
           '<div style="font-size:14px;font-weight:500">'+sanitize(e.modelo)+'</div>'+
-          '<div style="font-size:12px;color:var(--text-secondary);margin-top:2px">'+(e.tag?'TAG '+sanitize(e.tag):'Sin TAG')+(e.area?' · '+sanitize(e.area):'')+'</div>'+
+          '<div style="font-size:12px;color:#5B7177;margin-top:2px">'+(e.tag?'TAG '+sanitize(e.tag):'Sin TAG')+(e.area?' · '+sanitize(e.area):'')+'</div>'+
         '</button>'
       ).join("")+
       '</div>'+
@@ -898,9 +898,9 @@ function seleccionarQuitar(id){
   document.getElementById("quitar-select").value=id;
   document.querySelectorAll(".quitar-item").forEach(b=>{
     const activo=b.dataset.id===id;
-    b.style.background=activo?"var(--bg-accent-muted)":"var(--surface-1)";
-    b.style.borderColor=activo?"var(--border-accent)":"var(--border-stronger)";
-    b.style.borderWidth="1px";
+    b.style.background=activo?"#FDECEA":"#FFFFFF";
+    b.style.borderColor=activo?"#E57373":"#AAB0B5";
+    b.style.borderWidth=activo?"1.5px":"1px";
   });
 }
 function abrirQuitarEquipo(){
