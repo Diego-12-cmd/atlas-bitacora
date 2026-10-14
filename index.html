@@ -745,10 +745,10 @@ function guardarEdicionReg(key) {
 // ---- VISTA QR ----
 function abrirEquipoQR(id) {
   equipoActual=EQUIPOS.find(e=>e.id===id);if(!equipoActual)return;
-  document.getElementById("eq-q-nombre").textContent=equipoActual.modelo;
+  document.getElementById("eq-q-nombre").textContent="";
   document.getElementById("eq-q-tag").textContent="";
   document.getElementById("eq-q-modelo").innerHTML=sanitize(equipoActual.equipo+" "+equipoActual.modelo)+
-    (equipoActual.tag?' <span style="font-size:14px;font-weight:700;opacity:.9;margin-left:6px">TAG: '+sanitize(equipoActual.tag)+'</span>':"");
+    (equipoActual.tag?' <span style="font-size:inherit;font-weight:800">TAG: '+sanitize(equipoActual.tag)+'</span>':"");
   document.getElementById("eq-q-serie").textContent=equipoActual.serie?"N° Serie: "+equipoActual.serie:"";
   document.getElementById("eq-q-area").textContent=equipoActual.area;
   const est=document.getElementById("eq-q-estado");
