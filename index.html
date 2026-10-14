@@ -256,7 +256,11 @@
     <p>Selecciona un equipo para ver su historial</p>
     <div class="hero-strip"><span></span><span></span><span></span></div>
   </div>
-  <div class="filter-bar">
+  <div id="admin-bar" style="display:none;gap:8px;padding:14px 14px 0;margin-top:-20px;flex-wrap:wrap">
+      <button class="btn-verificar" style="flex:1;width:auto" onclick="abrirAgregarEquipo()">＋ Agregar equipo</button>
+      <button class="btn-verificar" style="flex:1;width:auto;background:var(--danger)" onclick="abrirQuitarEquipo()">− Quitar equipo</button>
+    </div>
+    <div class="filter-bar">
     <div class="search-wrap"><span class="search-icon">🔍</span>
       <input type="text" id="search-input" placeholder="Buscar modelo, TAG o área..." oninput="filtrar()"/>
     </div>
@@ -423,6 +427,72 @@
     <div class="reg-edit-group" style="margin-bottom:16px"><label>Comentario</label><textarea id="ing-comentario" rows="4" placeholder="Describe lo realizado..."></textarea></div>
     <button class="btn-verificar" id="btn-guardar-ingreso" onclick="guardarIngresoQR()">Guardar registro</button>
     <button class="btn-cancelar" onclick="cerrarFormIngreso()">Cancelar</button>
+  </div>
+</div>
+
+<!-- FORM AGREGAR EQUIPO -->
+<div class="form-overlay" id="form-agregar-eq">
+  <div class="form-sheet">
+    <div class="form-sheet-handle"></div>
+    <h3>Agregar equipo</h3>
+    <div class="form-equipo-name">Completa los datos del equipo.</div>
+    <div class="reg-edit-row">
+      <div class="reg-edit-group"><label>Tipo</label><select id="neq-tipo">
+        <option value="Compresor">Compresor</option>
+        <option value="SOPLADOR">Soplador</option>
+        <option value="Secador de Aire">Secador de Aire</option>
+        <option value="Valvula Despiche">Válvula Despiche</option>
+      </select></div>
+      <div class="reg-edit-group"><label>Modelo</label><input type="text" id="neq-modelo" placeholder="Ej: GA 250-05"/></div>
+    </div>
+    <div class="reg-edit-row">
+      <div class="reg-edit-group"><label>N° serie</label><input type="text" id="neq-serie"/></div>
+      <div class="reg-edit-group"><label>TAG</label><input type="text" id="neq-tag"/></div>
+    </div>
+    <div class="reg-edit-row">
+      <div class="reg-edit-group"><label>Área</label><input type="text" id="neq-area"/></div>
+      <div class="reg-edit-group"><label>Estado</label><select id="neq-estado">
+        <option value="Operativo">Operativo</option>
+        <option value="Fuera de servicio">Fuera de servicio</option>
+      </select></div>
+    </div>
+    <button class="btn-verificar" id="btn-guardar-eq" onclick="guardarNuevoEquipo()">Guardar equipo</button>
+    <button class="btn-cancelar" onclick="cerrarAgregarEquipo()">Cancelar</button>
+  </div>
+</div>
+
+<!-- FORM QUITAR EQUIPO -->
+<div class="form-overlay" id="form-quitar-eq">
+  <div class="form-sheet">
+    <div class="form-sheet-handle"></div>
+    <h3 style="color:var(--danger)">Quitar equipo</h3>
+    <div class="form-equipo-name">Selecciona el equipo que quieres quitar del dashboard.</div>
+    <div class="reg-edit-group" style="margin-bottom:16px"><label>Equipo</label><select id="quitar-select"></select></div>
+    <button class="btn-verificar" style="background:var(--danger)" onclick="pedirConfirmacionQuitar()">Continuar</button>
+    <button class="btn-cancelar" onclick="cerrarQuitarEquipo()">Cancelar</button>
+  </div>
+</div>
+
+<!-- CONFIRMACION 1 QUITAR -->
+<div class="form-overlay" id="form-quitar-c1">
+  <div class="form-sheet">
+    <div class="form-sheet-handle"></div>
+    <h3 style="color:#E67E22">¿Quitar este equipo?</h3>
+    <div class="form-equipo-name" id="quitar-c1-nombre" style="font-size:13px;color:var(--text);margin-bottom:20px;line-height:1.5"></div>
+    <button class="btn-verificar" style="background:var(--danger)" onclick="segundaConfirmacionQuitar()">Sí, quitar</button>
+    <button class="btn-cancelar" onclick="cancelarQuitar()">Cancelar</button>
+  </div>
+</div>
+
+<!-- CONFIRMACION 2 QUITAR -->
+<div class="form-overlay" id="form-quitar-c2">
+  <div class="form-sheet">
+    <div class="form-sheet-handle"></div>
+    <h3 style="color:var(--danger)">Confirmación final</h3>
+    <div class="form-equipo-name" id="quitar-c2-nombre" style="font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.5"></div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">El equipo dejará de aparecer en el dashboard. Sus registros de bitácora no se borran.</p>
+    <button class="btn-verificar" style="background:var(--danger)" onclick="quitarEquipoConfirmado()">Quitar definitivamente</button>
+    <button class="btn-cancelar" onclick="cancelarQuitar()">Cancelar</button>
   </div>
 </div>
 
@@ -735,6 +805,93 @@ function guardarIngresoQR(){
     .finally(()=>{ btn.disabled=false; });
 }
 
+
+// ---- ADMINISTRAR EQUIPOS (acceso personal) ----
+let _equiposBase = null;
+let _quitarId = null;
+function escucharConfigEquipos(){
+  if(!window._fbReady){document.addEventListener("firebase-ready",escucharConfigEquipos,{once:true});return;}
+  window._fbOnValue(window._fbRef(window._fbDb,"equiposConfig"),snap=>{
+    aplicarConfigEquipos(snap.exists()?snap.val():{});
+  });
+}
+function aplicarConfigEquipos(cfg){
+  if(!_equiposBase) _equiposBase=EQUIPOS.slice();
+  const ocultos=cfg.ocultos||{};
+  const agregados=cfg.agregados||{};
+  const lista=_equiposBase.filter(e=>!ocultos[e.id]).concat(Object.values(agregados));
+  EQUIPOS.length=0;
+  EQUIPOS.push(...lista);
+  if(document.getElementById("view-dashboard").classList.contains("active")) renderDashboard(EQUIPOS);
+}
+function escribirConfig(path,valor){
+  return import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js")
+    .then(({ref,set,remove})=> valor===null ? remove(ref(window._fbDb,"equiposConfig/"+path)) : set(ref(window._fbDb,"equiposConfig/"+path),valor));
+}
+
+function abrirAgregarEquipo(){
+  ["neq-modelo","neq-serie","neq-tag","neq-area"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("neq-tipo").value="Compresor";
+  document.getElementById("neq-estado").value="Operativo";
+  document.getElementById("form-agregar-eq").classList.add("active");
+}
+function cerrarAgregarEquipo(){ document.getElementById("form-agregar-eq").classList.remove("active"); }
+function guardarNuevoEquipo(){
+  const equipo=document.getElementById("neq-tipo").value;
+  const modelo=document.getElementById("neq-modelo").value.trim();
+  const serie=document.getElementById("neq-serie").value.trim();
+  const tag=document.getElementById("neq-tag").value.trim();
+  const area=document.getElementById("neq-area").value.trim();
+  const estado=document.getElementById("neq-estado").value;
+  if(!modelo){ mostrarToast("Ingresa el modelo.","#C0392B"); return; }
+  const id="EQ-"+Date.now();
+  const eq={id,equipo,modelo,serie,area,tag,estado,fbId:id};
+  const btn=document.getElementById("btn-guardar-eq");
+  btn.disabled=true;
+  escribirConfig("agregados/"+id,eq)
+    .then(()=>{ cerrarAgregarEquipo(); mostrarToast("Equipo agregado.","#1A7F5A"); })
+    .catch(()=>mostrarToast("Error al guardar.","#C0392B"))
+    .finally(()=>{ btn.disabled=false; });
+}
+
+function abrirQuitarEquipo(){
+  const sel=document.getElementById("quitar-select");
+  sel.innerHTML=EQUIPOS.map(e=>'<option value="'+sanitize(e.id)+'">'+sanitize(e.modelo)+(e.tag?" — "+sanitize(e.tag):"")+'</option>').join("");
+  document.getElementById("form-quitar-eq").classList.add("active");
+}
+function cerrarQuitarEquipo(){ document.getElementById("form-quitar-eq").classList.remove("active"); }
+function pedirConfirmacionQuitar(){
+  const id=document.getElementById("quitar-select").value;
+  const eq=EQUIPOS.find(e=>e.id===id);
+  if(!eq) return;
+  _quitarId=id;
+  document.getElementById("quitar-c1-nombre").textContent=eq.equipo+" "+eq.modelo+(eq.tag?" (TAG "+eq.tag+")":"");
+  cerrarQuitarEquipo();
+  document.getElementById("form-quitar-c1").classList.add("active");
+}
+function segundaConfirmacionQuitar(){
+  const eq=EQUIPOS.find(e=>e.id===_quitarId);
+  document.getElementById("form-quitar-c1").classList.remove("active");
+  document.getElementById("quitar-c2-nombre").textContent=eq?eq.equipo+" "+eq.modelo:"";
+  document.getElementById("form-quitar-c2").classList.add("active");
+}
+function cancelarQuitar(){
+  _quitarId=null;
+  document.getElementById("form-quitar-c1").classList.remove("active");
+  document.getElementById("form-quitar-c2").classList.remove("active");
+}
+function quitarEquipoConfirmado(){
+  const id=_quitarId;
+  if(!id) return;
+  const esAgregado=!!(_equiposBase && !_equiposBase.find(e=>e.id===id));
+  const op = esAgregado ? escribirConfig("agregados/"+id,null) : escribirConfig("ocultos/"+id,true);
+  op.then(()=>{
+      cancelarQuitar();
+      mostrarToast("Equipo quitado.","#1A7F5A");
+    })
+    .catch(()=>mostrarToast("Error al quitar.","#C0392B"));
+}
+
 // ---- QR TAB ----
 function renderQRTab(){
   if(!equipoActual)return;
@@ -797,6 +954,7 @@ async function verificarAcceso(){
     cerrarAcceso();
     document.getElementById("btn-acceso-dashboard").style.display="none";
     document.getElementById("btn-qr-print").style.display="block";
+    document.getElementById("admin-bar").style.display="flex";
     document.getElementById("btn-volver-qr").style.display=vieneDeQR?"block":"none";
     renderDashboard(EQUIPOS);
     mostrarVista("view-dashboard");
@@ -1036,6 +1194,7 @@ function leerHash(){
 }
 window.addEventListener("hashchange",leerHash);
 // Esperar Firebase antes de leer hash para que los últimos registros carguen
+escucharConfigEquipos();
 if(window._fbReady){ leerHash(); }
 else { document.addEventListener("firebase-ready",()=>{ leerHash(); }); }
 // Fallback si Firebase tarda
