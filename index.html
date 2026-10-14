@@ -746,11 +746,14 @@ function guardarEdicionReg(key) {
 function abrirEquipoQR(id) {
   equipoActual=EQUIPOS.find(e=>e.id===id);if(!equipoActual)return;
   document.getElementById("eq-q-nombre").textContent=equipoActual.modelo;
-  document.getElementById("eq-q-tag").textContent=equipoActual.tag?"TAG: "+equipoActual.tag:equipoActual.area;
-  document.getElementById("eq-q-modelo").textContent=equipoActual.equipo+" "+equipoActual.modelo;
+  document.getElementById("eq-q-tag").textContent="";
+  document.getElementById("eq-q-modelo").innerHTML=sanitize(equipoActual.equipo+" "+equipoActual.modelo)+
+    (equipoActual.tag?' <span style="font-size:14px;font-weight:700;opacity:.9;margin-left:6px">TAG: '+sanitize(equipoActual.tag)+'</span>':"");
   document.getElementById("eq-q-serie").textContent=equipoActual.serie?"N° Serie: "+equipoActual.serie:"";
   document.getElementById("eq-q-area").textContent=equipoActual.area;
-  document.getElementById("eq-q-estado").textContent=equipoActual.estado;
+  const est=document.getElementById("eq-q-estado");
+  est.textContent=equipoActual.estado;
+  est.style.cssText="font-size:15px;font-weight:800;padding:6px 16px;border:none;color:#fff;background:"+(equipoActual.estado==="Operativo"?"#1A7F5A":"#C0392B");
   mostrarVista("view-equipo-qr");
   escucharBitacoraQR();
 }
