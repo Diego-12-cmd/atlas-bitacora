@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flujo de aire y aceite - Compresor GA (enfriado por aire)</title>
+<style>
+:root{--bg:#f7f7f5;--fg:#1d1d1b;--mut:#6b6b66;--card:#ffffff;--line:#c9c9c2;--acc:#0a7e8c;--hi:#e23b2e;
+--c-air:#9fc3e8;--c-wet:#1f9e8f;--c-mix:#8fae7f;--c-oil:#e0a339}
+@media (prefers-color-scheme:dark){:root{--bg:#161715;--fg:#ececea;--mut:#9a9a94;--card:#1f201d;--line:#44463f;--acc:#3fc1cf;--hi:#ff6b5e}}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--fg)}
+header{padding:14px 18px;border-bottom:1px solid var(--line)}
+h1{font-size:18px;margin:0}
+.sub{margin:4px 0 0;color:var(--mut);font-size:13px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 18px}
+button{font:inherit;padding:7px 14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:6px;cursor:pointer}
+button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.status{color:var(--mut);font-size:13px;margin-left:auto}
+.wrap{display:grid;grid-template-columns:1fr 300px;gap:12px;padding:0 18px 18px}
+@media(max-width:800px){.wrap{grid-template-columns:1fr}}
+.stage{position:relative;border:1px solid var(--line);border-radius:10px;background:#fff;overflow:auto;height:560px;touch-action:none}
+.canvas{position:relative;transform-origin:0 0;cursor:grab;width:2210px;height:1230px}
+.canvas.drag{cursor:grabbing}
+.canvas img{position:absolute;top:0;left:0;width:2210px;height:1230px;user-select:none;pointer-events:none}
+.canvas svg{position:absolute;top:0;left:0;width:2210px;height:1230px;pointer-events:none}
+.hot{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:rgba(10,126,140,.15);border:2px solid var(--acc);cursor:pointer;pointer-events:auto}
+.hot:hover,.hot.sel{background:rgba(226,59,46,.25);border-color:var(--hi)}
+.side{border:1px solid var(--line);border-radius:10px;background:var(--card);padding:14px;font-size:14px;line-height:1.55;align-self:start}
+.side h2{font-size:16px;margin:0 0 6px}
+.code-tag{color:var(--acc);font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--mut);padding:0 18px 10px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.zoombar{display:flex;gap:6px;margin-left:8px}
+.therm{display:flex;gap:6px;margin-left:8px;border-left:1px solid var(--line);padding-left:10px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Compresor GA enfriado por aire - diagrama de flujo animado</h1>
+  <p class="sub">Mismo diagrama del manual Atlas Copco (PM 2946 1198 00), con el recorrido de aire y aceite animado.</p>
+</header>
+<div class="bar">
+  <div class="therm">
+    <span style="font-size:13px;color:var(--mut)">Aceite:</span>
+    <button id="tFrio" class="on">Frío</button>
+    <button id="tCaliente">Caliente</button>
+  </div>
+  <div class="zoombar">
+    <button id="zin">+</button>
+    <button id="zout">−</button>
+    <button id="zreset">100%</button>
+  </div>
+  <span id="status" class="status"></span>
+</div>
+<div class="legend">
+  <span><i class="sw" style="background:var(--c-air)"></i>Aire de entrada</span>
+  <span><i class="sw" style="background:var(--c-mix)"></i>Mezcla aire/aceite</span>
+  <span><i class="sw" style="background:var(--c-wet)"></i>Aire húmedo (comprimido)</span>
+  <span><i class="sw" style="background:var(--c-oil)"></i>Aceite</span>
+</div>
+<div class="wrap">
+  <div class="stage" id="stage">
+    <div class="canvas" id="canvas">
+      <img src="img/ga_flujo.png" alt="Diagrama de flujo del compresor GA">
+      <svg viewBox="0 0 2210 1230">
+        <path id="pathAir" d="M60,595 L380,595 L380,330 Q470,290 600,330 L650,460" fill="none" stroke="none"/>
+        <path id="pathMix" d="M830,790 Q880,900 960,900 Q1000,900 1000,820 L1000,650 Q1030,500 1100,420" fill="none" stroke="none"/>
+        <path id="pathWet" d="M1100,420 L1100,200 L1500,200 L1500,460 L1950,460 L1950,560 Q2010,570 2150,560" fill="none" stroke="none"/>
+        <path id="pathOilHot" d="M1150,1000 L1460,1000 L1560,870 L1940,870 L1940,890 L1570,890 L1460,1080 L800,1080 L800,1120 L805,790" fill="none" stroke="none"/>
+        <path id="pathOilCold" d="M1150,1000 L1460,1000 L1460,1080 L800,1080 L800,1120 L805,790" fill="none" stroke="none"/>
+      </svg>
+    </div>
+  </div>
+  <aside class="side" id="info"><h2>Selecciona un componente</h2><p>Haz clic en un punto del diagrama. Prueba también el botón Frío / Caliente para ver cómo cambia la ruta del aceite en la válvula termostática.</p></aside>
+</div>
+<p style="padding:0 18px 20px;font-size:12px;color:var(--mut)">Fuente: Atlas Copco, Flow diagram, Air Cooled GA, PM 2946 1198 00. Diagrama de referencia, verifica siempre contra el manual del equipo específico.</p>
+<script>
+const NS='http://www.w3.org/2000/svg';
+const canvas=document.getElementById('canvas');
+const svg=canvas.querySelector('svg');
+const info=document.getElementById('info');
+const statusEl=document.getElementById('status');
+let hot=false;
+
+const HOTSPOTS=[
+ {id:'filtro', x:270, y:595, name:'Filtro de aire', desc:'Limpia el aire antes de entrar al elemento compresor.'},
+ {id:'valvula_adm', x:620, y:350, name:'Válvula de admisión', desc:'Controla cuánto aire entra. Se cierra en descarga o al parar el compresor.'},
+ {id:'airend', x:400, y:550, name:'Elemento compresor (airend)', desc:'Dos rotores helicoidales comprimen el aire. El aceite se inyecta aquí para sellar, lubricar y enfriar la compresión.'},
+ {id:'tanque', x:1100, y:750, name:'Tanque separador aceite/aire', desc:'La mezcla entra en espiral, el aceite cae por gravedad al fondo y el aire sube hacia el elemento separador.'},
+ {id:'separador', x:1100, y:330, name:'Elemento separador', desc:'Cartucho que retiene las últimas gotas de aceite antes de que el aire salga como aire húmedo comprimido.'},
+ {id:'cooler', x:1750, y:650, name:'Enfriador combinado (aire + aceite)', desc:'Dos ventiladores enfrían el aire comprimido y el aceite al mismo tiempo, cada uno por su propio circuito.'},
+ {id:'salida', x:2080, y:560, name:'Salida de aire', desc:'El aire comprimido y enfriado sale hacia la red, pasando por una trampa de condensado.'},
+ {id:'termostatica', x:800, y:1120, name:'Válvula termostática', desc:'Mide la temperatura del aceite. Si está frío lo manda directo de vuelta al compresor (bypass). Si está caliente lo obliga a pasar primero por el enfriador. Usa los botones Frío/Caliente para verlo.'}
+];
+
+function buildHotspots(){
+  canvas.querySelectorAll('.hot').forEach(n=>n.remove());
+  for(const h of HOTSPOTS){
+    const d=document.createElement('div');
+    d.className='hot';
+    d.style.left=(h.x/2210*100)+'%';
+    d.style.top=(h.y/1230*100)+'%';
+    d.onclick=()=>select(h,d);
+    canvas.appendChild(d);
+  }
+}
+function select(h,el){
+  document.querySelectorAll('.hot').forEach(n=>n.classList.remove('sel'));
+  el.classList.add('sel');
+  info.innerHTML=`<h2>${h.name}</h2><p>${h.desc}</p>`;
+}
+
+function makeDots(pathId, color, count, speed){
+  const path=document.getElementById(pathId);
+  const len=path.getTotalLength();
+  const dots=[];
+  for(let i=0;i<count;i++){
+    const c=document.createElementNS(NS,'circle');
+    c.setAttribute('r',7);
+    c.setAttribute('fill',color);
+    svg.appendChild(c);
+    dots.push({el:c,t:i/count,speed});
+  }
+  return {path,len,dots};
+}
+
+let flows=[];
+function initFlows(){
+  flows.forEach(f=>f.dots.forEach(d=>d.el.remove()));
+  flows=[];
+  flows.push(makeDots('pathAir','#378ADD',4,0.0022));
+  flows.push(makeDots('pathMix','#639922',4,0.0022));
+  flows.push(makeDots('pathWet','#0F6E56',5,0.0022));
+  flows.push(makeDots(hot?'pathOilHot':'pathOilCold','#BA7517',5,0.0022));
+}
+
+function tick(){
+  for(const f of flows){
+    for(const d of f.dots){
+      d.t=(d.t+d.speed)%1;
+      const pt=f.path.getPointAtLength(d.t*f.len);
+      d.el.setAttribute('cx',pt.x);
+      d.el.setAttribute('cy',pt.y);
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+function setTherm(h){
+  hot=h;
+  document.getElementById('tFrio').classList.toggle('on', !h);
+  document.getElementById('tCaliente').classList.toggle('on', h);
+  statusEl.textContent = h ? 'Aceite caliente: pasa por el enfriador antes de volver' : 'Aceite frío: la termostática lo devuelve directo (bypass)';
+  initFlows();
+}
+document.getElementById('tFrio').onclick=()=>setTherm(false);
+document.getElementById('tCaliente').onclick=()=>setTherm(true);
+
+let scale=1,panX=0,panY=0;
+function applyTransform(){ canvas.style.transform=`translate(${panX}px,${panY}px) scale(${scale})`; }
+function zoom(f){ scale=Math.min(4,Math.max(.3,f)); applyTransform(); }
+document.getElementById('zin').onclick=()=>zoom(scale+.25);
+document.getElementById('zout').onclick=()=>zoom(scale-.25);
+document.getElementById('zreset').onclick=()=>{scale=1;panX=0;panY=0;applyTransform();};
+document.getElementById('stage').addEventListener('wheel',e=>{ if(e.ctrlKey){ e.preventDefault(); zoom(scale+(e.deltaY<0?.15:-.15)); } },{passive:false});
+
+let dragging=false,startX=0,startY=0;
+canvas.addEventListener('pointerdown',e=>{
+  if(e.target.classList.contains('hot')) return;
+  dragging=true; canvas.classList.add('drag');
+  startX=e.clientX-panX; startY=e.clientY-panY;
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove',e=>{ if(!dragging) return; panX=e.clientX-startX; panY=e.clientY-startY; applyTransform(); });
+canvas.addEventListener('pointerup',()=>{ dragging=false; canvas.classList.remove('drag'); });
+
+buildHotspots();
+setTherm(false);
+tick();
+</script>
+</body>
+</html>
