@@ -23,8 +23,10 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .canvas.drag{cursor:grabbing}
 .canvas>img.base{position:absolute;top:0;left:0;width:2210px;height:1330px;user-select:none;pointer-events:none}
 .arr{position:absolute;pointer-events:none;will-change:transform}
-.hot{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:transparent;border:2px solid transparent;cursor:pointer}
-.hot:hover,.hot.sel{background:rgba(226,59,46,.2);border-color:var(--hi)}
+.pin{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:var(--acc);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid #fff;box-shadow:0 0 0 1px var(--acc)}
+.pin:hover,.pin.sel{background:var(--hi);box-shadow:0 0 0 1px var(--hi)}
+.code-tag{color:var(--acc);font-weight:700}
+.note{font-size:12px;color:var(--mut)}
 .side{border:1px solid var(--line);border-radius:10px;background:var(--card);padding:14px;font-size:14px;line-height:1.55;align-self:start}
 .side h2{font-size:16px;margin:0 0 6px}
 .legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--mut);padding:0 18px 10px}
@@ -93,33 +95,63 @@ const info=document.getElementById('info');
 const statusEl=document.getElementById('status');
 let hot=false;
 
-const HOTSPOTS=[
- {x:270,y:595,name:'AF - Filtro de aire',desc:'Filtro de aire (AF). El aire aspirado pasa primero por aquí antes del elemento compresor.'},
- {x:620,y:350,name:'UA - Descargador',desc:'Descargador (UA). Abre o cierra la entrada de aire al elemento. En descarga, la solenoide corta la presión, la válvula de descarga se cierra y el depósito se desahoga hacia la toma de aire (blow off). En carga, la solenoide deja pasar la presión del depósito y se retoma el 100% de suministro.'},
- {x:400,y:550,name:'E - Elemento compresor',desc:'Elemento compresor (E). Dos rotores helicoidales comprimen el aire. El aceite se inyecta aquí para sellar, lubricar y enfriar la compresión.'},
- {x:1100,y:750,name:'AR - Receptor de aire / separador de aceite',desc:'Receptor de aire y separador de aceite (AR). El aire y el aceite llegan aquí a través de la válvula de retención (CV). La mayor parte del aceite se separa por centrifugación.'},
- {x:1100,y:330,name:'Elemento separador (dentro del AR)',desc:'Cartucho separador dentro del receptor AR. Retiene las últimas gotas de aceite antes de que el aire salga hacia la válvula de presión mínima (Vp).'},
- {x:1750,y:650,name:'Ca / Co - Enfriadores de aire y aceite',desc:'Enfriador de aire (Ca) y enfriador de aceite (Co), refrigerados por los mismos ventiladores.'},
- {x:2080,y:505,name:'MTa / AO - Colector de condensado y salida',desc:'El aire enfriado pasa por el colector de condensado (MTa) antes de salir hacia la red por la válvula de salida (AO).'},
- {x:800,y:1120,name:'BV - Válvula de bypass del enfriador de aceite',desc:'Válvula BV. Con el compresor frío deja el enfriador de aceite (Co) fuera de circuito para calentar el aceite más rápido. Una vez caliente, deja pasar el aceite por el enfriador. El manual disponible no da el valor exacto en °C de este cambio.'}
+const PARTS=[
+ {n:1,x:418,y:646,code:'AF',name:'Filtro de aire',desc:'Filtra el aire de entrada antes de que llegue al elemento compresor.'},
+ {n:2,x:674,y:834,code:'UA',name:'Descargador (válvula de admisión)',desc:'Abre o cierra la entrada de aire al elemento. En descarga corta la admisión y el depósito se desahoga por la toma de aire (blow off).'},
+ {n:3,x:762,y:685,code:'E',name:'Elemento compresor',desc:'Dos rotores helicoidales que comprimen el aire. Recibe aceite para sellar, lubricar y enfriar la compresión.'},
+ {n:4,x:1216,y:718,code:'AR',name:'Receptor de aire / separador de aceite',desc:'Recibe la mezcla aire-aceite. La mayor parte del aceite se separa por centrifugación en el fondo.'},
+ {n:5,x:1221,y:387,code:'AR (cartucho)',name:'Elemento separador',desc:'Retiene las últimas gotas de aceite antes de que el aire salga hacia la red.'},
+ {n:6,x:1834,y:547,code:'Ca',name:'Enfriador de aire posterior',desc:'Enfría el aire comprimido antes de enviarlo a la red. Sus ventiladores están en el punto 7.'},
+ {n:7,x:1862,y:707,code:'-',name:'Ventiladores de refrigeración',desc:'Enfrían el aire y el aceite de los refrigeradores.'},
+ {n:8,x:1867,y:890,code:'Co',name:'Enfriador de aceite',desc:'Enfría el aceite que vuelve al elemento. La válvula BV decide si el aceite pasa por aquí o no.'},
+ {n:9,x:2121,y:663,code:'MTa',name:'Colector de condensado',desc:'Junta el agua condensada que se separa al enfriar el aire, con drenaje automático y manual.'},
+ {n:10,x:2127,y:481,code:'AO',name:'Válvula de salida de aire',desc:'Entrega el aire comprimido a la red del cliente.'},
+ {n:11,x:1061,y:1237,code:'OF',name:'Filtro de aceite',desc:'Filtra el aceite antes de llegar a los puntos de lubricación del elemento.'}
 ];
 
 function buildHotspots(){
-  for(const h of HOTSPOTS){
+  for(const h of PARTS){
     const d=document.createElement('div');
-    d.className='hot';
+    d.className='pin';
+    d.textContent=h.n;
     d.style.left=h.x+'px';
     d.style.top=h.y+'px';
     d.onclick=()=>select(h,d);
+    d.dataset.n=h.n;
     canvas.appendChild(d);
+  }
+  info.innerHTML='<h2>Partes del compresor</h2><ol id="plist" style="padding-left:18px;margin:6px 0 0"></ol><p class="sub" style="margin-top:10px">Haz clic en un número o en la lista.</p>';
+  const ol=document.getElementById('plist');
+  for(const h of PARTS){
+    const li=document.createElement('li');
+    li.style.cursor='pointer';
+    li.style.marginBottom='4px';
+    li.innerHTML=`<b>${h.code}</b> ${h.name}`;
+    li.onclick=()=>select(h,canvas.querySelector(`.pin[data-n="${h.n}"]`));
+    ol.appendChild(li);
   }
 }
 function select(h,el){
-  document.querySelectorAll('.hot').forEach(n=>n.classList.remove('sel'));
-  el.classList.add('sel');
-  info.innerHTML=`<h2>${h.name}</h2><p>${h.desc}</p>`;
+  document.querySelectorAll('.pin').forEach(n=>n.classList.remove('sel'));
+  if(el) el.classList.add('sel');
+  info.innerHTML=`<h2>${h.n}. ${h.name}</h2><p><span class="code-tag">${h.code}</span></p><p>${h.desc}</p><p class="note"><a href="#" onclick="buildHotspots_back();return false;">Volver a la lista</a></p>`;
 }
-
+function buildHotspots_back(){
+  document.querySelectorAll('.pin').forEach(n=>n.classList.remove('sel'));
+  buildListOnly();
+}
+function buildListOnly(){
+  info.innerHTML='<h2>Partes del compresor</h2><ol id="plist" style="padding-left:18px;margin:6px 0 0"></ol><p class="sub" style="margin-top:10px">Haz clic en un número o en la lista.</p>';
+  const ol=document.getElementById('plist');
+  for(const h of PARTS){
+    const li=document.createElement('li');
+    li.style.cursor='pointer';
+    li.style.marginBottom='4px';
+    li.innerHTML=`<b>${h.code}</b> ${h.name}`;
+    li.onclick=()=>select(h,canvas.querySelector(`.pin[data-n="${h.n}"]`));
+    ol.appendChild(li);
+  }
+}
 const sprites=ARROWS.map(a=>{
   const img=document.createElement('img');
   img.className='arr';
@@ -133,14 +165,6 @@ const sprites=ARROWS.map(a=>{
   return {el:img,dx:a.dx,dy:a.dy};
 });
 
-const AMP=6, SPEED=0.0035;
-function tick(ts){
-  const off=AMP*Math.sin((ts||0)*SPEED);
-  for(const s of sprites){
-    s.el.style.transform=`translate(${(s.dx*off).toFixed(2)}px,${(s.dy*off).toFixed(2)}px)`;
-  }
-  requestAnimationFrame(tick);
-}
 
 function setTherm(h){
   hot=h;
@@ -171,7 +195,6 @@ canvas.addEventListener('pointerup',()=>{ dragging=false; canvas.classList.remov
 
 buildHotspots();
 setTherm(false);
-requestAnimationFrame(tick);
 </script>
 </body>
 </html>
