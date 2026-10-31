@@ -130,10 +130,8 @@ function makeArrows(pathId, color, count){
     const g=document.createElementNS(NS,'g');
     g.setAttribute('transform',`translate(${pt.x},${pt.y}) rotate(${angle})`);
     const poly=document.createElementNS(NS,'polygon');
-    poly.setAttribute('points','-7,-5 7,0 -7,5');
+    poly.setAttribute('points','-9,-7 10,0 -9,7 -4,0');
     poly.setAttribute('fill',color);
-    poly.setAttribute('stroke','#fff');
-    poly.setAttribute('stroke-width','1');
     g.appendChild(poly);
     svg.appendChild(g);
     arrows.push({el:g,x:pt.x,y:pt.y,angle,phase:Math.random()*Math.PI*2});
