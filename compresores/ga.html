@@ -69,7 +69,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
   </div>
   <aside class="side" id="info"><h2>Selecciona un componente</h2><p>Haz clic en un punto del diagrama. Prueba también el botón Frío / Caliente para ver cómo cambia la ruta del aceite en la válvula termostática.</p></aside>
 </div>
-<p style="padding:0 18px 20px;font-size:12px;color:var(--mut)">Fuente: Atlas Copco, Flow diagram, Air Cooled GA, PM 2946 1198 00. Diagrama de referencia, verifica siempre contra el manual del equipo específico.</p>
+<p style="padding:0 18px 20px;font-size:12px;color:var(--mut)">Fuente: Atlas Copco, Flow diagram, Air Cooled GA, PM 2946 1198 00, y Manual de instrucciones GA132 (APF132129), sección 2.2 Sistema de aire y aceite, diagrama de flujo GA90 a GA160. Diagrama de referencia, verifica siempre contra el manual del equipo específico.</p>
 <script>
 const ARROW_SPRITES=[
 {l:335,t:305,w:85,h:110,dx:0,dy:-1,src:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFUAAABuCAIAAADZKshjAAADeUlEQVR4Xu2d3WvaUBjGE5v4VZdO16TdKv1QtjE26IWFDrrBYP/s2O3+gF1sNwM7OsrYaGnRdlpaW63Wj2hisot0WarGj5JzeM/HcyUK4i/P+77nOSdCRNu2BXJk9q2P+aNOzwzqJ4eC+iI8yhcqAcILAlH8Td34Wa4Ge6FJ8j9fuAgWniT/m7pxVGmwy4/CfGL8N/sWCvOJ4d8vBTz2XBEw/yzb/l6sBN75jgjgL9VaiODJ4Ec0+cjwXzf61VaXXf+PEaz5XkHv/73TS3TmQ+//Wqsb7G5nWKD9L1zdIDUfuv+/zmrs8jd1A3Xxg/b/vNFBbT5o/oPza3b5LdsuXyOMvdD3P/V2D4P5cOsfaeYlIP+dVpGv/KD3P4hOe8jIf7rRx9P8QPu/3sE0/IDyN3WDaf+xDT+g/pfrbab9x7DtgZv/cDY/xPo3+ha24ofIjy35As1/DR3f4g/R/3ob4Wk/GfkXp8Cd/2Lb+QDtf8yC5b+Jd/EDN/9w7nx5/cPzH3P4A1f/mMMfOH78gjX/8Yvzsy1Y/uM8+ePrP5//RPz/E6lg9T9+cX62xf1nW9x/tsX9Z1vcf7bF/Wdb3H+2xf1nW9x/tsX9Z1sM+S+OcpoVfk2Jba4uDl8BVvh3ssu5NVUKDRYBE/zp5HwqERUEYWtdGygB+vlFQXj77ImD/XIllYjI3ktAP/+GqsTDksu8ta4yxC+FxO3Mkhc4qy0k4xH3Hcr9f5V+5DXf0bvnt+1A+f1fKSTm1u5Uu6NUIqopMec1zf6/efrYL9y+f5F2VkJq+RMROast+PHHw9KGqtDMPzDnh7WdWRJp9V9TYmPMdxQPS5uri3TW/0522a/yvcqtqRTyu2l3GtHG702704g2/oG0O1FU8Q+n3Ymiin9k2h0vevj90i4r/GPS7hhR4v/4tEs//8S06yca/J8m7dLMP2XaHSni/Z8p7Q6LbP5Z0y5t/LOmXar475F2qeK/R9qlhz8qz408251VpM6/13fvaoxU2/8xQe5HRPJPk3Z3i5UP3w79yuHTXuHz71K7Z/6/MUaQxm91SrXW18OzZtcYvtvtKh6RjiuNk6sb8vg1JbaSnPcr+C8H5T//nhcRlX3pEhH5QuiYlk0ev1/a3S1Wfpxceh9m9jAe9itq7UHMebIAYfwZVXH+yeCVW/AD74elOT/+qHz70V9yTey7SeH4xQAAAABJRU5ErkJggg=='},
@@ -95,14 +95,14 @@ const statusEl=document.getElementById('status');
 let hot=false;
 
 const HOTSPOTS=[
- {id:'filtro', x:270, y:595, name:'Filtro de aire', desc:'Limpia el aire antes de entrar al elemento compresor.'},
- {id:'valvula_adm', x:620, y:350, name:'Válvula de admisión', desc:'Controla cuánto aire entra. Se cierra en descarga o al parar el compresor.'},
- {id:'airend', x:400, y:550, name:'Elemento compresor (airend)', desc:'Dos rotores helicoidales comprimen el aire. El aceite se inyecta aquí para sellar, lubricar y enfriar la compresión.'},
- {id:'tanque', x:1100, y:750, name:'Tanque separador aceite/aire', desc:'La mezcla entra en espiral, el aceite cae por gravedad al fondo y el aire sube hacia el elemento separador.'},
- {id:'separador', x:1100, y:330, name:'Elemento separador', desc:'Cartucho que retiene las últimas gotas de aceite antes de que el aire salga como aire húmedo comprimido.'},
- {id:'cooler', x:1750, y:650, name:'Enfriador combinado (aire + aceite)', desc:'Dos ventiladores enfrían el aire comprimido y el aceite al mismo tiempo, cada uno por su propio circuito.'},
- {id:'salida', x:2080, y:505, name:'Salida de aire', desc:'El aire comprimido y enfriado sale hacia la red, pasando por una trampa de condensado.'},
- {id:'termostatica', x:800, y:1120, name:'Válvula termostática', desc:'Mide la temperatura del aceite. Si está frío lo manda directo de vuelta al compresor (bypass). Si está caliente lo obliga a pasar primero por el enfriador. Usa los botones Frío/Caliente para verlo.'}
+ {id:'filtro', x:270, y:595, name:'AF - Filtro de aire', desc:'Filtro de aire (AF). El aire aspirado pasa primero por aquí antes del elemento compresor.'},
+ {id:'valvula_adm', x:620, y:350, name:'UA - Descargador / válvula de admisión', desc:'Descargador (UA). Abre o cierra la entrada de aire al elemento. En descarga, la válvula solenoide corta el suministro de presión, la válvula de descarga se cierra y el depósito se desahoga hacia la toma de aire (blow off). En carga, la solenoide abre paso a la presión del depósito y la válvula de descarga se abre, retomando el 100% de suministro.'},
+ {id:'airend', x:400, y:550, name:'E - Elemento compresor', desc:'Elemento compresor (E). Dos rotores helicoidales comprimen el aire. El aceite se inyecta aquí para sellar, lubricar y enfriar la compresión.'},
+ {id:'tanque', x:1100, y:750, name:'AR - Receptor de aire / separador de aceite', desc:'Receptor de aire y separador de aceite (AR). El aire comprimido y el aceite llegan aquí a través de la válvula de retención (CV). La mayor parte del aceite se separa por centrifugación, el resto lo retira el elemento separador.'},
+ {id:'separador', x:1100, y:330, name:'Elemento separador (dentro del AR)', desc:'Cartucho separador dentro del receptor AR. Retiene las últimas gotas de aceite antes de que el aire salga como aire húmedo comprimido hacia la válvula de presión mínima (Vp).'},
+ {id:'cooler', x:1750, y:650, name:'Ca / Co - Enfriadores de aire y de aceite', desc:'Enfriador de aire (Ca) y enfriador de aceite (Co), refrigerados por los mismos ventiladores. Según el manual GA90-GA160, las válvulas BV dejan el enfriador de aceite fuera de circuito en arranque frío para calentar el aceite más rápido.'},
+ {id:'salida', x:2080, y:505, name:'MTa / AO - Colector de condensado y salida', desc:'El aire enfriado pasa por el colector de condensado (MTa, con drenaje automático Dac y manual Dmc) antes de salir hacia la red por la válvula de salida (AO).'},
+ {id:'termostatica', x:800, y:1120, name:'BV - Válvula de bypass del enfriador de aceite', desc:'Válvula BV, según el manual Atlas Copco GA90-GA160. Con el compresor frío, deja el enfriador de aceite (Co) fuera de circuito para que el aceite llegue más rápido a su temperatura de trabajo. Una vez caliente, deja pasar el aceite por el enfriador. El manual disponible no da el valor exacto en °C de este cambio. Usa Frío/Caliente para ver las dos rutas.'}
 ];
 
 function buildHotspots(){
@@ -155,7 +155,7 @@ function setTherm(h){
   hot=h;
   document.getElementById('tFrio').classList.toggle('on', !h);
   document.getElementById('tCaliente').classList.toggle('on', h);
-  statusEl.textContent = h ? 'Aceite caliente: pasa por el enfriador antes de volver' : 'Aceite frío: la termostática lo devuelve directo (bypass)';
+  statusEl.textContent = h ? 'Aceite caliente: la válvula BV lo manda por el enfriador Co' : 'Aceite frío: la válvula BV lo devuelve directo, Co queda fuera de circuito';
 }
 document.getElementById('tFrio').onclick=()=>setTherm(false);
 document.getElementById('tCaliente').onclick=()=>setTherm(true);
