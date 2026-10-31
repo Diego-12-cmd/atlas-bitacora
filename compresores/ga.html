@@ -112,37 +112,54 @@ function select(h,el){
   info.innerHTML=`<h2>${h.name}</h2><p>${h.desc}</p>`;
 }
 
-function makeDots(pathId, color, count, speed){
+function tangentAt(path,len,t){
+  const d=Math.min(4,len*0.01);
+  const t0=Math.max(0,t*len-d), t1=Math.min(len,t*len+d);
+  const p0=path.getPointAtLength(t0), p1=path.getPointAtLength(t1);
+  return Math.atan2(p1.y-p0.y, p1.x-p0.x)*180/Math.PI;
+}
+
+function makeArrows(pathId, color, count){
   const path=document.getElementById(pathId);
   const len=path.getTotalLength();
-  const dots=[];
+  const arrows=[];
   for(let i=0;i<count;i++){
-    const c=document.createElementNS(NS,'circle');
-    c.setAttribute('r',6);
-    c.setAttribute('fill',color);
-    svg.appendChild(c);
-    dots.push({el:c,t:i/count,speed});
+    const t=(i+0.5)/count;
+    const pt=path.getPointAtLength(t*len);
+    const angle=tangentAt(path,len,t);
+    const g=document.createElementNS(NS,'g');
+    g.setAttribute('transform',`translate(${pt.x},${pt.y}) rotate(${angle})`);
+    const poly=document.createElementNS(NS,'polygon');
+    poly.setAttribute('points','-7,-5 7,0 -7,5');
+    poly.setAttribute('fill',color);
+    poly.setAttribute('stroke','#fff');
+    poly.setAttribute('stroke-width','1');
+    g.appendChild(poly);
+    svg.appendChild(g);
+    arrows.push({el:g,x:pt.x,y:pt.y,angle,phase:Math.random()*Math.PI*2});
   }
-  return {path,len,dots};
+  return arrows;
 }
 
 let flows=[];
 function initFlows(){
-  flows.forEach(f=>f.dots.forEach(d=>d.el.remove()));
+  flows.forEach(f=>f.forEach(a=>a.el.remove()));
   flows=[];
-  flows.push(makeDots('pathAir','#378ADD',4,0.0022));
-  flows.push(makeDots('pathMix','#639922',4,0.0022));
-  flows.push(makeDots('pathWet','#0F6E56',5,0.0022));
-  flows.push(makeDots(hot?'pathOilHot':'pathOilCold','#BA7517',5,0.0022));
+  flows.push(makeArrows('pathAir','#378ADD',5));
+  flows.push(makeArrows('pathMix','#639922',4));
+  flows.push(makeArrows('pathWet','#0F6E56',6));
+  flows.push(makeArrows(hot?'pathOilHot':'pathOilCold','#BA7517',6));
 }
 
-function tick(){
+const AMPLITUDE=9, SPEED=0.0035;
+function tick(ts){
   for(const f of flows){
-    for(const d of f.dots){
-      d.t=(d.t+d.speed)%1;
-      const pt=f.path.getPointAtLength(d.t*f.len);
-      d.el.setAttribute('cx',pt.x);
-      d.el.setAttribute('cy',pt.y);
+    for(const a of f){
+      const off=AMPLITUDE*Math.sin((ts||0)*SPEED+a.phase)+AMPLITUDE;
+      const rad=a.angle*Math.PI/180;
+      const x=a.x+Math.cos(rad)*off;
+      const y=a.y+Math.sin(rad)*off;
+      a.el.setAttribute('transform',`translate(${x},${y}) rotate(${a.angle})`);
     }
   }
   requestAnimationFrame(tick);
