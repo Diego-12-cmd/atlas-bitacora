@@ -65,11 +65,11 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
     <div class="canvas" id="canvas">
       <img src="img/ga_flujo.png" alt="Diagrama de flujo del compresor GA">
       <svg viewBox="0 0 2210 1230">
-        <path id="pathAir" d="M60,595 L380,595 L380,330 Q470,290 600,330 L650,460" fill="none" stroke="none"/>
-        <path id="pathMix" d="M830,790 Q880,900 960,900 Q1000,900 1000,820 L1000,650 Q1030,500 1100,420" fill="none" stroke="none"/>
-        <path id="pathWet" d="M1100,420 L1100,200 L1500,200 L1500,460 L1950,460 L1950,560 Q2010,570 2150,560" fill="none" stroke="none"/>
-        <path id="pathOilHot" d="M1150,1000 L1460,1000 L1560,870 L1940,870 L1940,890 L1570,890 L1460,1080 L800,1080 L800,1120 L805,790" fill="none" stroke="none"/>
-        <path id="pathOilCold" d="M1150,1000 L1460,1000 L1460,1080 L800,1080 L800,1120 L805,790" fill="none" stroke="none"/>
+        <path id="pathAir" d="M60,595 L364,595 L375,593 L382,540 L383,410 L385,334 L420,314 L473,292 L511,309 L560,357 L608,405 L647,452" fill="none" stroke="none"/>
+        <path id="pathMix" d="M830,814 L850,834 L867,858 L896,870 L926,900 L950,900 L963,885 L971,856 L996,835 L1013,811 L1018,787 L1028,772 L1014,730 L1000,690 L1000,666 L1006,635 L1019,605 L1032,576 L1045,546 L1058,516 L1071,487 L1084,457 L1097,427 L1100,420" fill="none" stroke="none"/>
+        <path id="pathWet" d="M1100,420 L1100,205 L1495,205 L1500,255 L1500,460 L1950,460 L1950,505 L2080,505" fill="none" stroke="none"/>
+        <path id="pathOilHot" d="M1150,1000 L1460,1000 L1570,870 L1940,870 L1940,890 L1570,890 L1570,1080 L800,1080 L800,1120 L805,1080 L805,790" fill="none" stroke="none"/>
+        <path id="pathOilCold" d="M1150,1000 L1460,1000 L1460,1080 L800,1080 L800,1120 L805,1080 L805,790" fill="none" stroke="none"/>
       </svg>
     </div>
   </div>
@@ -91,7 +91,7 @@ const HOTSPOTS=[
  {id:'tanque', x:1100, y:750, name:'Tanque separador aceite/aire', desc:'La mezcla entra en espiral, el aceite cae por gravedad al fondo y el aire sube hacia el elemento separador.'},
  {id:'separador', x:1100, y:330, name:'Elemento separador', desc:'Cartucho que retiene las últimas gotas de aceite antes de que el aire salga como aire húmedo comprimido.'},
  {id:'cooler', x:1750, y:650, name:'Enfriador combinado (aire + aceite)', desc:'Dos ventiladores enfrían el aire comprimido y el aceite al mismo tiempo, cada uno por su propio circuito.'},
- {id:'salida', x:2080, y:560, name:'Salida de aire', desc:'El aire comprimido y enfriado sale hacia la red, pasando por una trampa de condensado.'},
+ {id:'salida', x:2080, y:505, name:'Salida de aire', desc:'El aire comprimido y enfriado sale hacia la red, pasando por una trampa de condensado.'},
  {id:'termostatica', x:800, y:1120, name:'Válvula termostática', desc:'Mide la temperatura del aceite. Si está frío lo manda directo de vuelta al compresor (bypass). Si está caliente lo obliga a pasar primero por el enfriador. Usa los botones Frío/Caliente para verlo.'}
 ];
 
@@ -118,7 +118,7 @@ function makeDots(pathId, color, count, speed){
   const dots=[];
   for(let i=0;i<count;i++){
     const c=document.createElementNS(NS,'circle');
-    c.setAttribute('r',7);
+    c.setAttribute('r',6);
     c.setAttribute('fill',color);
     svg.appendChild(c);
     dots.push({el:c,t:i/count,speed});
